@@ -16,12 +16,12 @@ jobs:
           cache: npm
 
       - run: npm install
+      - name: Build
+        run: npm run build --workspaces
       - name: Typecheck (tsgo)
         run: npm run typecheck --workspaces
       - name: Test
         run: npm run test --workspaces
-      - name: Build
-        run: npm run build --workspaces
       - name: Smoke — CLI from tarball
         run: |
           cd packages/cli

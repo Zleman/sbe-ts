@@ -1,0 +1,17 @@
+{
+  "name": "sbe-ts-workspace",
+  "private": true,
+  "workspaces": [
+    "packages/runtime",
+    "packages/cli"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces",
+    "typecheck": "npm run typecheck --workspaces"
+  },
+  "devDependencies": {
+    "@typescript/native-preview": "7.0.0-dev.20260425.1",
+    "typescript": "^6.0.3"
+  }
+}

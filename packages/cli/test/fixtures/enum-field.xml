@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbe:messageSchema
+  xmlns:sbe="http://fixprotocol.io/2016/sbe"
+  package="orders"
+  id="2"
+  version="0"
+  byteOrder="littleEndian">
+
+  <types>
+    <enum name="side" encodingType="uint8">
+      <validValue name="Buy">0</validValue>
+      <validValue name="Sell">1</validValue>
+    </enum>
+    <enum name="timeInForce" encodingType="uint8">
+      <validValue name="Day">0</validValue>
+      <validValue name="GoodTillCancel">1</validValue>
+      <validValue name="ImmediateOrCancel">3</validValue>
+    </enum>
+  </types>
+
+  <sbe:message name="NewOrder" id="1" blockLength="16">
+    <field name="clOrdId"     id="1" type="uint64" offset="0"/>
+    <field name="side"        id="2" type="side"   offset="8"/>
+    <field name="timeInForce" id="3" type="timeInForce" offset="9"/>
+    <field name="reserved"    id="4" type="uint8"  offset="10"/>
+  </sbe:message>
+
+</sbe:messageSchema>

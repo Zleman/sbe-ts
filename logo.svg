@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="512" height="512" viewBox="0 0 512 512">
+
+  <!-- background -->
+  <rect width="512" height="512" rx="52" fill="#0f172a"/>
+
+  <!-- field bars — each width represents a different SBE primitive size -->
+  <rect x="90" y="84" width="295" height="34" rx="7" fill="#3b82f6"/>
+  <rect x="90" y="131" width="370" height="34" rx="7" fill="#2563eb"/>
+  <rect x="90" y="178" width="200" height="34" rx="7" fill="#0ea5e9"/>
+  <rect x="90" y="225" width="265" height="34" rx="7" fill="#06b6d4"/>
+  <rect x="90" y="272" width="240" height="34" rx="7" fill="#0891b2"/>
+
+  <!-- flyweight cursor -->
+  <polygon points="66,185 82,195 66,205" fill="#475569"/>
+
+  <!-- wordmark -->
+  <text x="256" y="412"
+        text-anchor="middle"
+        font-family="ui-monospace,'Cascadia Code','Fira Code',monospace"
+        font-size="78" font-weight="700" fill="#f8fafc">
+    sbe<tspan fill="#3b82f6">-ts</tspan>
+  </text>
+
+</svg>

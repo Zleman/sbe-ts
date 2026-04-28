@@ -1,0 +1,307 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`generateAll — groups > Trade.ts snapshot 1`] = `
+"// AUTO-GENERATED — do not edit. Re-run sbe-ts-cli to regenerate.
+// Package: groups  Schema ID: 6  Version: 0
+import { MessageFlyweight, GroupIterator, GroupWriter } from 'sbe-ts';
+
+class LegsEntry extends MessageFlyweight {
+  static readonly BLOCK_LENGTH = 4;
+
+  legId(): number { return this.view.getUint16(this.offset + 0, true); }
+  weight(): number { return this.view.getUint16(this.offset + 2, true); }
+
+  setLegId(v: number): this { this.view.setUint16(this.offset + 0, v, true); return this; }
+  setWeight(v: number): this { this.view.setUint16(this.offset + 2, v, true); return this; }
+
+  absoluteEnd(): number {
+    return this.offset + LegsEntry.BLOCK_LENGTH;
+  }
+}
+class FillsEntry extends MessageFlyweight {
+  static readonly BLOCK_LENGTH = 6;
+
+  private static readonly _EMPTY = new ArrayBuffer(0);
+  private readonly _legsEntry = new LegsEntry(FillsEntry._EMPTY, 0);
+  private readonly _legsIter = new GroupIterator(this._legsEntry);
+  private readonly _legsWriter = new GroupWriter(this._legsEntry);
+
+  price(): number { return this.view.getUint32(this.offset + 0, true); }
+  quantity(): number { return this.view.getUint16(this.offset + 4, true); }
+
+  setPrice(v: number): this { this.view.setUint32(this.offset + 0, v, true); return this; }
+  setQuantity(v: number): this { this.view.setUint16(this.offset + 4, v, true); return this; }
+
+  legs(): GroupIterator<LegsEntry> {
+    const hdrOff = this.offset + FillsEntry.BLOCK_LENGTH;
+    const view = this.view;
+    const numInGroup = view.getUint16(hdrOff + 2, true);
+    return this._legsIter.reset(view.buffer, hdrOff + 4, numInGroup);
+  }
+
+  legsCount(numInGroup: number): GroupWriter<LegsEntry> {
+    const hdrOff = this.offset + FillsEntry.BLOCK_LENGTH;
+    const view = this.view;
+    view.setUint16(hdrOff, LegsEntry.BLOCK_LENGTH, true);
+    view.setUint16(hdrOff + 2, numInGroup, true);
+    return this._legsWriter.reset(view.buffer, hdrOff + 4, numInGroup);
+  }
+
+  absoluteEnd(): number {
+    const hdr0 = (this.offset + FillsEntry.BLOCK_LENGTH);
+    const n0 = this.view.getUint16(hdr0 + 2, true);
+    return this._legsIter.reset(this.view.buffer, hdr0 + 4, n0).absoluteEnd();
+  }
+}
+
+export class TradeDecoder extends MessageFlyweight {
+  static readonly BLOCK_LENGTH = 8;
+  static readonly TEMPLATE_ID  = 1;
+  static readonly SCHEMA_ID    = 6;
+  static readonly VERSION      = 0;
+
+  private static readonly _EMPTY = new ArrayBuffer(0);
+  private readonly _fillsEntry = new FillsEntry(TradeDecoder._EMPTY, 0);
+  private readonly _fillsIter = new GroupIterator(this._fillsEntry);
+
+  override wrap(buffer: ArrayBufferLike, offset: number): this {
+    super.wrap(buffer, offset);
+    this.cursor = TradeDecoder.BLOCK_LENGTH;
+    return this;
+  }
+
+  tradeId(): bigint { return this.view.getBigUint64(this.offset + 0, true); }
+
+  fills(): GroupIterator<FillsEntry> {
+    const hdrOff = this.offset + TradeDecoder.BLOCK_LENGTH;
+    const view = this.view;
+    const numInGroup = view.getUint16(hdrOff + 2, true);
+    return this._fillsIter.reset(view.buffer, hdrOff + 4, numInGroup);
+  }
+
+  // VarData fields must be read in schema-declaration order (cursor advances on each call).
+  comment(): Uint8Array {
+    const pos = this._fillsIter.absoluteEnd();
+    const len = this.view.getUint32(pos, true);
+    const data = new Uint8Array(this.view.buffer, pos + 4, len);
+    this.cursor = (pos + 4 + len) - this.offset;
+    return data;
+  }
+  // VarData fields must be read in schema-declaration order (cursor advances on each call).
+  metadata(): Uint8Array {
+    const pos = this.offset + this.cursor;
+    const len = this.view.getUint32(pos, true);
+    const data = new Uint8Array(this.view.buffer, pos + 4, len);
+    this.cursor += 4 + len;
+    return data;
+  }
+}
+
+export class TradeEncoder extends MessageFlyweight {
+  static readonly BLOCK_LENGTH = 8;
+
+  private static readonly _EMPTY = new ArrayBuffer(0);
+  private readonly _fillsEntry = new FillsEntry(TradeEncoder._EMPTY, 0);
+  private readonly _fillsWriter = new GroupWriter(this._fillsEntry);
+
+  override wrap(buffer: ArrayBufferLike, offset: number): this {
+    super.wrap(buffer, offset);
+    this.cursor = TradeEncoder.BLOCK_LENGTH;
+    return this;
+  }
+
+  setTradeId(v: bigint): this { this.view.setBigUint64(this.offset + 0, v, true); return this; }
+
+  fillsCount(numInGroup: number): GroupWriter<FillsEntry> {
+    const hdrOff = this.offset + TradeEncoder.BLOCK_LENGTH;
+    const view = this.view;
+    view.setUint16(hdrOff, FillsEntry.BLOCK_LENGTH, true);
+    view.setUint16(hdrOff + 2, numInGroup, true);
+    return this._fillsWriter.reset(view.buffer, hdrOff + 4, numInGroup);
+  }
+
+  setComment(data: Uint8Array): this {
+    if (data.length > 4294967295) throw new RangeError(\`comment: payload (\${data.length} bytes) exceeds uint32 prefix capacity\`);
+    const pos = this._fillsWriter.absoluteEnd();
+    this.view.setUint32(pos, data.length, true);
+    new Uint8Array(this.view.buffer, pos + 4, data.length).set(data);
+    this.cursor = (pos + 4 + data.length) - this.offset;
+    return this;
+  }
+  setMetadata(data: Uint8Array): this {
+    if (data.length > 4294967295) throw new RangeError(\`metadata: payload (\${data.length} bytes) exceeds uint32 prefix capacity\`);
+    const pos = this.offset + this.cursor;
+    this.view.setUint32(pos, data.length, true);
+    new Uint8Array(this.view.buffer, pos + 4, data.length).set(data);
+    this.cursor += 4 + data.length;
+    return this;
+  }
+}
+"
+`;
+
+exports[`generateAll — snapshots > all-types.xml AllTypes 1`] = `
+"// AUTO-GENERATED — do not edit. Re-run sbe-ts-cli to regenerate.
+// Package: all.types.test  Schema ID: 4  Version: 0
+import { MessageFlyweight } from 'sbe-ts';
+
+export class AllTypesDecoder extends MessageFlyweight {
+  static readonly BLOCK_LENGTH = 44;
+  static readonly TEMPLATE_ID  = 1;
+  static readonly SCHEMA_ID    = 4;
+  static readonly VERSION      = 0;
+
+  f_int8(): number { return this.view.getInt8(this.offset + 0); }
+  f_uint8(): number { return this.view.getUint8(this.offset + 1); }
+  f_int16(): number { return this.view.getInt16(this.offset + 2, true); }
+  f_uint16(): number { return this.view.getUint16(this.offset + 4, true); }
+  f_int32(): number { return this.view.getInt32(this.offset + 6, true); }
+  f_uint32(): number { return this.view.getUint32(this.offset + 10, true); }
+  f_int64(): bigint { return this.view.getBigInt64(this.offset + 14, true); }
+  f_uint64(): bigint { return this.view.getBigUint64(this.offset + 22, true); }
+  f_float(): number { return this.view.getFloat32(this.offset + 30, true); }
+  f_double(): number { return this.view.getFloat64(this.offset + 34, true); }
+  f_float16(): number { return this.view.getFloat16(this.offset + 42, true); }
+}
+
+export class AllTypesEncoder extends MessageFlyweight {
+  static readonly BLOCK_LENGTH = 44;
+
+  setF_int8(v: number): this { this.view.setInt8(this.offset + 0, v); return this; }
+  setF_uint8(v: number): this { this.view.setUint8(this.offset + 1, v); return this; }
+  setF_int16(v: number): this { this.view.setInt16(this.offset + 2, v, true); return this; }
+  setF_uint16(v: number): this { this.view.setUint16(this.offset + 4, v, true); return this; }
+  setF_int32(v: number): this { this.view.setInt32(this.offset + 6, v, true); return this; }
+  setF_uint32(v: number): this { this.view.setUint32(this.offset + 10, v, true); return this; }
+  setF_int64(v: bigint): this { this.view.setBigInt64(this.offset + 14, v, true); return this; }
+  setF_uint64(v: bigint): this { this.view.setBigUint64(this.offset + 22, v, true); return this; }
+  setF_float(v: number): this { this.view.setFloat32(this.offset + 30, v, true); return this; }
+  setF_double(v: number): this { this.view.setFloat64(this.offset + 34, v, true); return this; }
+  setF_float16(v: number): this { this.view.setFloat16(this.offset + 42, v, true); return this; }
+}
+"
+`;
+
+exports[`generateAll — snapshots > big-endian.xml SimpleOrder 1`] = `
+"// AUTO-GENERATED — do not edit. Re-run sbe-ts-cli to regenerate.
+// Package: big.endian.test  Schema ID: 2  Version: 1
+import { MessageFlyweight } from 'sbe-ts';
+
+export class SimpleOrderDecoder extends MessageFlyweight {
+  static readonly BLOCK_LENGTH = 12;
+  static readonly TEMPLATE_ID  = 1;
+  static readonly SCHEMA_ID    = 2;
+  static readonly VERSION      = 1;
+
+  constructor(buffer: ArrayBufferLike, offset: number) { super(buffer, offset, false); }
+
+  orderId(): bigint { return this.view.getBigUint64(this.offset + 0, false); }
+  price(): number { return this.view.getInt32(this.offset + 8, false); }
+}
+
+export class SimpleOrderEncoder extends MessageFlyweight {
+  static readonly BLOCK_LENGTH = 12;
+
+  constructor(buffer: ArrayBufferLike, offset: number) { super(buffer, offset, false); }
+
+  setOrderId(v: bigint): this { this.view.setBigUint64(this.offset + 0, v, false); return this; }
+  setPrice(v: number): this { this.view.setInt32(this.offset + 8, v, false); return this; }
+}
+"
+`;
+
+exports[`generateAll — snapshots > market-data.xml MarketData 1`] = `
+"// AUTO-GENERATED — do not edit. Re-run sbe-ts-cli to regenerate.
+// Package: market.data  Schema ID: 1  Version: 0
+import { MessageFlyweight } from 'sbe-ts';
+
+export class MarketDataDecoder extends MessageFlyweight {
+  static readonly BLOCK_LENGTH = 24;
+  static readonly TEMPLATE_ID  = 1;
+  static readonly SCHEMA_ID    = 1;
+  static readonly VERSION      = 0;
+
+  instrumentId(): number { return this.view.getUint32(this.offset + 0, true); }
+  price(): bigint { return this.view.getBigInt64(this.offset + 4, true); }
+  quantity(): bigint { return this.view.getBigInt64(this.offset + 12, true); }
+  flags(): number { return this.view.getUint32(this.offset + 20, true); }
+}
+
+export class MarketDataEncoder extends MessageFlyweight {
+  static readonly BLOCK_LENGTH = 24;
+
+  setInstrumentId(v: number): this { this.view.setUint32(this.offset + 0, v, true); return this; }
+  setPrice(v: bigint): this { this.view.setBigInt64(this.offset + 4, v, true); return this; }
+  setQuantity(v: bigint): this { this.view.setBigInt64(this.offset + 12, v, true); return this; }
+  setFlags(v: number): this { this.view.setUint32(this.offset + 20, v, true); return this; }
+}
+"
+`;
+
+exports[`generateAll — snapshots > market-data.xml OrderAck 1`] = `
+"// AUTO-GENERATED — do not edit. Re-run sbe-ts-cli to regenerate.
+// Package: market.data  Schema ID: 1  Version: 0
+import { MessageFlyweight } from 'sbe-ts';
+
+export class OrderAckDecoder extends MessageFlyweight {
+  static readonly BLOCK_LENGTH = 16;
+  static readonly TEMPLATE_ID  = 2;
+  static readonly SCHEMA_ID    = 1;
+  static readonly VERSION      = 0;
+
+  orderId(): bigint { return this.view.getBigUint64(this.offset + 0, true); }
+  status(): number { return this.view.getUint8(this.offset + 8); }
+  rejectCode(): number { return this.view.getInt16(this.offset + 9, true); }
+  reserved(): number { return this.view.getUint32(this.offset + 12, true); }
+}
+
+export class OrderAckEncoder extends MessageFlyweight {
+  static readonly BLOCK_LENGTH = 16;
+
+  setOrderId(v: bigint): this { this.view.setBigUint64(this.offset + 0, v, true); return this; }
+  setStatus(v: number): this { this.view.setUint8(this.offset + 8, v); return this; }
+  setRejectCode(v: number): this { this.view.setInt16(this.offset + 9, v, true); return this; }
+  setReserved(v: number): this { this.view.setUint32(this.offset + 12, v, true); return this; }
+}
+"
+`;
+
+exports[`generateComposites + generateAll — composite-field.xml > Span.ts matches snapshot 1`] = `
+"// AUTO-GENERATED — do not edit. Re-run sbe-ts-cli to regenerate.
+import { CompositeFlyweight } from 'sbe-ts';
+
+export class SpanDecoder extends CompositeFlyweight {
+  static readonly SIZE = 8;
+
+  low(): number { return this.view.getInt32(this.offset + 0, true); }
+  high(): number { return this.view.getInt32(this.offset + 4, true); }
+}
+
+export class SpanEncoder extends CompositeFlyweight {
+  setLow(v: number): this { this.view.setInt32(this.offset + 0, v, true); return this; }
+  setHigh(v: number): this { this.view.setInt32(this.offset + 4, v, true); return this; }
+}
+"
+`;
+
+exports[`generateComposites — basics > MessageHeader.ts matches snapshot 1`] = `
+"// AUTO-GENERATED — do not edit. Re-run sbe-ts-cli to regenerate.
+import { CompositeFlyweight } from 'sbe-ts';
+
+export class MessageHeaderDecoder extends CompositeFlyweight {
+  static readonly SIZE = 8;
+
+  blockLength(): number { return this.view.getUint16(this.offset + 0, true); }
+  templateId(): number { return this.view.getUint16(this.offset + 2, true); }
+  schemaId(): number { return this.view.getUint16(this.offset + 4, true); }
+  version(): number { return this.view.getUint16(this.offset + 6, true); }
+}
+
+export class MessageHeaderEncoder extends CompositeFlyweight {
+  setBlockLength(v: number): this { this.view.setUint16(this.offset + 0, v, true); return this; }
+  setTemplateId(v: number): this { this.view.setUint16(this.offset + 2, v, true); return this; }
+  setSchemaId(v: number): this { this.view.setUint16(this.offset + 4, v, true); return this; }
+  setVersion(v: number): this { this.view.setUint16(this.offset + 6, v, true); return this; }
+}
+"
+`;

@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm install
+      - name: Typecheck (tsgo)
+        run: npm run typecheck --workspaces
+      - name: Test
+        run: npm run test --workspaces
+      - name: Build
+        run: npm run build --workspaces
+      - name: Smoke — CLI from tarball
+        run: |
+          cd packages/cli
+          npm pack
+          CLI_TARBALL=$(realpath *.tgz)
+          TMPDIR=$(mktemp -d)
+          cd "$TMPDIR"
+          npm init -y
+          npm install "$CLI_TARBALL"
+          node node_modules/.bin/sbe-ts-cli --help
+      - name: Smoke — runtime ESM import
+        run: |
+          cd packages/runtime
+          npm pack
+          RT_TARBALL=$(realpath *.tgz)
+          TMPDIR=$(mktemp -d)
+          cd "$TMPDIR"
+          echo '{"type":"module"}' > package.json
+          npm install "$RT_TARBALL"
+          node -e "import('sbe-ts').then(m => { if (!m.MessageFlyweight) throw new Error('missing export'); })"

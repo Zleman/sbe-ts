@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbe:messageSchema
+  xmlns:sbe="http://fixprotocol.io/2016/sbe"
+  package="groups"
+  id="6"
+  version="0"
+  byteOrder="littleEndian">
+
+  <types>
+    <composite name="messageHeader">
+      <type name="blockLength" primitiveType="uint16"/>
+      <type name="templateId"  primitiveType="uint16"/>
+      <type name="schemaId"    primitiveType="uint16"/>
+      <type name="version"     primitiveType="uint16"/>
+    </composite>
+    <composite name="groupSizeEncoding">
+      <type name="blockLength" primitiveType="uint16"/>
+      <type name="numInGroup"  primitiveType="uint16"/>
+    </composite>
+    <composite name="varStringEncoding">
+      <type name="length"  primitiveType="uint32"/>
+      <type name="varData" primitiveType="uint8"/>
+    </composite>
+  </types>
+
+  <!-- Trade message: fixed field + one group (with nested group) + two outer VarData -->
+  <sbe:message name="Trade" id="1" blockLength="8">
+    <field name="tradeId" id="1" type="uint64" offset="0"/>
+    <group name="fills" id="10" dimensionType="groupSizeEncoding" blockLength="6">
+      <field name="price"    id="11" type="uint32" offset="0"/>
+      <field name="quantity" id="12" type="uint16" offset="4"/>
+      <group name="legs" id="20" dimensionType="groupSizeEncoding" blockLength="4">
+        <field name="legId"  id="21" type="uint16" offset="0"/>
+        <field name="weight" id="22" type="uint16" offset="2"/>
+      </group>
+    </group>
+    <data name="comment"  id="2" type="varStringEncoding"/>
+    <data name="metadata" id="3" type="varStringEncoding"/>
+  </sbe:message>
+
+</sbe:messageSchema>

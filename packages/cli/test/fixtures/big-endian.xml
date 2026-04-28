@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbe:messageSchema
+  xmlns:sbe="http://fixprotocol.io/2016/sbe"
+  package="big.endian.test"
+  id="2"
+  version="1"
+  byteOrder="bigEndian">
+
+  <sbe:message name="SimpleOrder" id="1" blockLength="12">
+    <field name="orderId" id="1" type="uint64" offset="0"/>
+    <field name="price"   id="2" type="int32"  offset="8"/>
+  </sbe:message>
+
+</sbe:messageSchema>

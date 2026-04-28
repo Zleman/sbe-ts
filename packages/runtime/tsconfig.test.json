@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "rootDir": ".",
+    "lib": ["ES2025", "ESNext.Disposable"]
+  },
+  "include": ["src", "test"]
+}

@@ -1,0 +1,35 @@
+{
+  "name": "sbe-ts-cli",
+  "version": "0.1.0",
+  "description": "Code generator — compile SBE XML schemas to TypeScript flyweight classes",
+  "keywords": ["sbe", "simple-binary-encoding", "codegen", "cli", "finance"],
+  "license": "MIT",
+  "repository": { "type": "git", "url": "https://github.com/zleman/sbe-ts.git" },
+  "bugs":       { "url": "https://github.com/zleman/sbe-ts/issues" },
+  "type": "module",
+  "bin": {
+    "sbe-ts-cli": "./dist/index.mjs"
+  },
+  "exports": {
+    ".": "./dist/index.mjs"
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsdown",
+    "pretest": "tsgo --noEmit && tsgo --noEmit --project tsconfig.test.json",
+    "test": "vitest run",
+    "typecheck": "tsgo --noEmit",
+    "typecheck:legacy": "tsc --noEmit"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^5.3.5",
+    "sbe-ts": "*"
+  },
+  "engines": { "node": ">=20" },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsdown": "^0.21.10",
+    "vitest": "^2.1.0",
+    "typescript": "^6.0.3"
+  }
+}

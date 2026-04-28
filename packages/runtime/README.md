@@ -41,23 +41,26 @@ while (hasMessages()) {
 
 ## Performance guide
 
-The library can reach ~220M ops/sec on a ring-buffer feed. Whether you hit that number or 20M depends entirely on three architectural choices in your ingest pipeline.
+The library can reach ~210M ops/sec on a ring-buffer feed. Whether you hit that number or 21M depends entirely on three architectural choices in your ingest pipeline.
 
-### 1. Use a ring buffer — don't allocate per message
+### 1. Use a ring buffer and `wrapOffset()` — don't allocate per message
 
 ```typescript
 // Allocate once at startup
 const ringBuffer = new ArrayBuffer(64 * 1024); // 64 KB ring
+decoder.wrap(ringBuffer, 0);                   // initial wrap sets the DataView
 
-// Hot loop — wrap() is a single integer assignment, no allocation
+// Hot loop — wrapOffset() updates only the integer offset, zero allocation
 while (feed.hasMessages()) {
   const offset = feed.writeNext(ringBuffer);
-  decoder.wrap(ringBuffer, offset);
+  decoder.wrapOffset(offset);  // ~210M ops/sec
   process(decoder);
 }
 ```
 
-Allocating a `new ArrayBuffer()` per message costs a `new DataView()` construction on every `wrap()` call. That's the difference between ~165M and 20M ops/sec. Pre-allocate one large buffer and write messages into it at rotating offsets. Use `wrapOffset()` instead of `wrap()` when the buffer hasn't changed to skip the identity check and reach ~220M.
+`wrapOffset()` skips the buffer-identity check and DataView construction entirely — it's a single integer assignment. Use it whenever the underlying buffer doesn't change between messages, which is always true on a ring.
+
+If you can't use a ring (e.g. incoming network packets land in separate buffers), `wrap()` still handles it but constructs a new `DataView` per call, landing around 21M ops/sec. That's still 3.4× faster than `JSON.parse`, but not the 210M ceiling. Pre-allocate one large buffer and copy incoming frames into it to recover the full ring-buffer throughput.
 
 ### 2. Pre-allocate decoders — one instance per message type
 
@@ -168,19 +171,19 @@ Measured with a raw Node.js script (no framework overhead) on Node 24, Windows 1
 
 | Scenario | ops/sec | vs JSON.parse |
 |---|---|---|
-| `wrapOffset()` — ring — 4× uint32 | **~220M** | **~34×** |
+| `wrapOffset()` — ring — 4× uint32 | **~210M** | **~34×** |
 | `wrap()` — ring — 4× uint32 | **~165M** | **~26×** |
-| `wrap()` — ring — 2× uint32 + 2× int64/BigInt | **~80M** | **~12×** |
+| `wrap()` — ring — 2× uint32 + 2× int64/BigInt | **~35M** | **~5×** |
 | TypedArray — ring — 4× uint32 | ~140M | ~22× |
 | `JSON.parse` — 4 fields | ~6.4M | baseline |
 
-`wrapOffset(offset)` skips the buffer-identity check and DataView re-creation when you know the buffer hasn't changed; use it in the inner loop for maximum throughput. `wrap()` is still correct in all cases.
+The BigInt rows are slower because `getBigInt64` crosses the JS number/BigInt boundary. Keep int64 fields off the hot path where possible.
 
-**Rotating buffers**: one `ArrayBuffer` per logical message (typical network packet scenario). Each `wrap()` call allocates a new DataView over the incoming buffer.
+**Rotating buffers**: one `ArrayBuffer` per logical message (typical network packet scenario). Each `wrap()` constructs a new `DataView` over the incoming buffer.
 
 | Scenario | ops/sec | vs JSON.parse |
 |---|---|---|
-| DataView — 4× uint32 | **~20M** | ~3× |
+| sbe-ts — rotating — 4× uint32 | **~21M** | **~3.4×** |
 | `JSON.parse` — 4 fields | ~6.4M | baseline |
 
 Note: V8 inlines `DataView.getUint32(constantOffset)` to a near-direct memory read in the ring-buffer case. TypedArray still benefits non-V8 runtimes and older V8 builds.

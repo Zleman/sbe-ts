@@ -1,15 +1,22 @@
+<p align="center">
+  <img src="logo.svg" alt="sbe-ts" width="120"/>
+</p>
+
 # sbe-ts
 
-TypeScript implementation of [Simple Binary Encoding](https://github.com/real-logic/simple-binary-encoding) — the wire format used by financial exchanges for ultra-low-latency message streaming.
+[![npm](https://img.shields.io/npm/v/sbe-ts)](https://www.npmjs.com/package/sbe-ts)
+[![npm](https://img.shields.io/npm/v/sbe-ts-cli?label=sbe-ts-cli)](https://www.npmjs.com/package/sbe-ts-cli)
+
+TypeScript implementation of [Simple Binary Encoding](https://github.com/real-logic/simple-binary-encoding), the wire format used by financial exchanges for ultra-low-latency message streaming.
 
 ## Why SBE
 
 Normal approach: receive bytes → `JSON.parse` → allocate an object → read fields.
 SBE approach: receive bytes → place a stencil over the buffer → read fields at fixed byte offsets.
 
-No object allocation per message for fixed primitive and composite fields. No string parsing. No GC pressure. The stencil is called a **flyweight** — it wraps the raw buffer and exposes typed accessors. The same flyweight instance is reused across every message in the stream. VarData accessors return a zero-copy `Uint8Array` view (one lightweight allocation per call, no data copied).
+No object allocation per message for fixed primitive and composite fields. No string parsing. No GC pressure. The stencil is called a **flyweight**: it wraps the raw buffer and exposes typed accessors. You reuse the same flyweight instance across every message in the stream. VarData accessors return a zero-copy `Uint8Array` view (one lightweight allocation per call, no data copied).
 
-**Measured on Node 24** with rotating buffers (no V8 constant-fold): flyweight decode at **11.6M ops/sec** vs **3.5M ops/sec** for `JSON.parse` — **3.3× faster throughput** and **5.3× better p999 latency** (300 ns vs 1,600 ns). The gap widens with larger messages.
+**Measured on Node 24** with rotating buffers (no V8 constant-fold): flyweight decode at **11.6M ops/sec** vs **3.5M ops/sec** for `JSON.parse`. That's **3.3× faster throughput** and **5.3× better p999 latency** (300 ns vs 1,600 ns). The gap widens with larger messages.
 
 ## Packages
 
@@ -64,13 +71,13 @@ while (stream.hasNext()) {
 
 ## Status
 
-**v1.0.0** — production-ready for schemas using primitive fields, composite types, enums, bitsets, repeating groups, and variable-length data.
+**v0.1.0**: covers primitive fields, composite types, enums, bitsets, repeating groups, and variable-length data. API is stable but the library is pre-1.0.
 
-Deferred to v1.1:
+Deferred:
 - Schema evolution / version checking
 - WASM hot path (DataView baseline benchmarked first)
 
 ## Reference
 
 - [SBE specification](https://github.com/real-logic/simple-binary-encoding/wiki)
-- [real-logic/simple-binary-encoding](https://github.com/real-logic/simple-binary-encoding) — reference implementation (Java, C++, C#, Go)
+- [real-logic/simple-binary-encoding](https://github.com/real-logic/simple-binary-encoding) (reference implementation in Java, C++, C#, Go)

@@ -1,6 +1,8 @@
 # sbe-ts
 
-Zero-allocation [Simple Binary Encoding](https://github.com/real-logic/simple-binary-encoding) runtime for TypeScript. Reads SBE-encoded binary messages directly from an `ArrayBuffer` using a flyweight pattern. Fixed primitive fields and composite accessors are fully zero-allocation; VarData accessors return a zero-copy `Uint8Array` view (one lightweight view-object allocation per call, no data copying).
+[![npm](https://img.shields.io/npm/v/sbe-ts)](https://www.npmjs.com/package/sbe-ts)
+
+Zero-allocation [Simple Binary Encoding](https://github.com/real-logic/simple-binary-encoding) runtime for TypeScript. Reads SBE-encoded binary messages directly from an `ArrayBuffer` using a flyweight pattern. Fixed primitive fields and composite accessors are fully zero-allocation; VarData accessors return a zero-copy `Uint8Array` view (one lightweight view-object allocation per call, no data copied).
 
 ## Install
 
@@ -14,7 +16,7 @@ Wraps a binary buffer with a typed stencil. Reading a field is a single `DataVie
 
 Supports the full SBE feature set: fixed primitive fields, composite types, enums, bitsets, repeating groups (including nested groups), and variable-length data fields. `GroupIterator<T>` provides zero-allocation `for...of` iteration over repeating groups.
 
-What it does **not** do: parse XML schemas, generate code, or handle network transport. For code generation from an SBE XML schema, see [`sbe-ts-cli`](../cli/README.md).
+What it **doesn't** do: parse XML schemas, generate code, or handle network transport. For code generation from an SBE XML schema, see [`sbe-ts-cli`](../cli/README.md).
 
 ## Core usage
 
@@ -28,7 +30,7 @@ decoder.getInt64(4);    // read 8 bytes at field offset 4 — returns bigint
 decoder.getFloat64(12); // read 8 bytes at field offset 12
 ```
 
-Re-use the same decoder for every message in the stream — zero allocation after the first `new`:
+Reuse the same decoder for every message in the stream, zero allocation after the first `new`:
 
 ```typescript
 while (hasMessages()) {
@@ -102,13 +104,13 @@ while (feed.hasMessages()) {
 }
 ```
 
-The dispatch table itself sees multiple function shapes — that's unavoidable. But it does no work except jump. The field accessors, where 99% of the CPU time is spent, are in the monomorphic handler functions and stay fast.
+The dispatch table itself sees multiple function shapes (that's unavoidable). But it does no work except jump. The field accessors, where 99% of the CPU time is spent, are in the monomorphic handler functions and stay fast.
 
 ---
 
 ## Building your own decoder
 
-Extend `MessageFlyweight` with named accessors. This is exactly what `sbe-ts-cli generate` produces:
+Extend `MessageFlyweight` with named accessors. That's exactly what `sbe-ts-cli generate` produces:
 
 ```typescript
 import { MessageFlyweight } from 'sbe-ts';
@@ -131,7 +133,7 @@ decoder.price(); // direct DataView read at byte 4, no allocation
 
 ## Composite types
 
-`CompositeFlyweight` is the base for fixed-length nested structs (e.g., `messageHeader`). It has the same API as `MessageFlyweight` — `sbe-ts-cli` generates composite classes that extend it.
+`CompositeFlyweight` is the base for fixed-length nested structs (e.g., `messageHeader`). It has the same API as `MessageFlyweight`. `sbe-ts-cli` generates composite classes that extend it.
 
 ```typescript
 import { CompositeFlyweight } from 'sbe-ts';
@@ -162,7 +164,7 @@ Requires `"lib": ["ES2025", "ESNext.Disposable"]` in tsconfig and TypeScript 5.2
 
 Measured with a raw Node.js script (no framework overhead) on Node 24, Windows 11. Run `node bench-raw.mjs` in the runtime package to reproduce.
 
-**Ring-buffer pattern** — one large `ArrayBuffer`, messages at different offsets. This is the realistic hot path for market data feeds.
+**Ring-buffer pattern**: one large `ArrayBuffer`, messages at different offsets. This is the realistic hot path for market data feeds.
 
 | Scenario | ops/sec | vs JSON.parse |
 |---|---|---|
@@ -172,9 +174,9 @@ Measured with a raw Node.js script (no framework overhead) on Node 24, Windows 1
 | TypedArray — ring — 4× uint32 | ~140M | ~22× |
 | `JSON.parse` — 4 fields | ~6.4M | baseline |
 
-`wrapOffset(offset)` skips the buffer-identity check and DataView re-creation when you know the buffer hasn't changed — use it in the inner loop for maximum throughput. `wrap()` is still correct in all cases.
+`wrapOffset(offset)` skips the buffer-identity check and DataView re-creation when you know the buffer hasn't changed; use it in the inner loop for maximum throughput. `wrap()` is still correct in all cases.
 
-**Rotating buffers** — one `ArrayBuffer` per logical message (typical network packet scenario). Each `wrap()` call allocates a new DataView over the incoming buffer.
+**Rotating buffers**: one `ArrayBuffer` per logical message (typical network packet scenario). Each `wrap()` call allocates a new DataView over the incoming buffer.
 
 | Scenario | ops/sec | vs JSON.parse |
 |---|---|---|
@@ -232,7 +234,7 @@ decodeString(buf: ArrayBufferLike, offset: number, maxLen: number): string
 
 ### GroupIterator
 
-`GroupIterator<T>` iterates repeating groups with zero allocation per entry. Generated by `sbe-ts-cli` — not typically constructed directly.
+`GroupIterator<T>` iterates repeating groups with zero allocation per entry. Generated by `sbe-ts-cli`, not typically constructed directly.
 
 ```typescript
 import { GroupIterator } from 'sbe-ts';
@@ -254,5 +256,5 @@ for (const entry of fills) {
 
 ## Requirements
 
-- **Node 22+** — required for `DataView.getFloat16` / `setFloat16` (V8 native, no polyfill)
+- **Node 22+**: required for `DataView.getFloat16` / `setFloat16` (V8 native, no polyfill)
 - TypeScript 5.2+ for `using` / `Symbol.dispose`; TypeScript 6+ recommended

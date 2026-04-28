@@ -1,5 +1,7 @@
 # sbe-ts-cli
 
+[![npm](https://img.shields.io/npm/v/sbe-ts-cli)](https://www.npmjs.com/package/sbe-ts-cli)
+
 Code generator for [Simple Binary Encoding](https://github.com/real-logic/simple-binary-encoding). Compiles an SBE XML schema into TypeScript decoder and encoder classes that extend the zero-allocation `sbe-ts` runtime.
 
 ## Install
@@ -109,7 +111,7 @@ export class MarketDataEncoder extends MessageFlyweight {
 
 ## Composite types
 
-Composites defined in `<types>` are generated as standalone files. If a message field references a composite by name, the decoder emits a pre-allocated accessor that wraps the buffer in-place — zero extra allocation per call:
+Composites defined in `<types>` are generated as standalone files. If a message field references a composite by name, the decoder emits a pre-allocated accessor that wraps the buffer in-place, with zero extra allocation per call:
 
 ```typescript
 // Schema: <field name="header" id="1" type="messageHeader" offset="0"/>
@@ -143,12 +145,12 @@ All multi-byte reads respect the schema's `byteOrder`. For big-endian schemas, g
 
 The following SBE features produce a `// skipped:` comment in the generated output rather than an accessor:
 
-- **Array-typed fields** — `<type>` elements with `length > 1` (e.g. `char[6]` vehicle codes). The bytes are laid out correctly but no single accessor is emitted.
-- **`<ref>` elements inside composites** — offsets are computed correctly for size calculations, but no typed accessor is generated.
-- **`presence="constant"` fields** — occupy zero wire bytes and are excluded from both offset calculation and accessor generation.
-- **Composite-within-composite codegen** — nested composites (e.g. a `<ref>` to another composite inside a composite) are not recursively expanded into accessor methods.
+- **Array-typed fields**: `<type>` elements with `length > 1` (e.g. `char[6]` vehicle codes). Bytes are laid out correctly but no single accessor is emitted.
+- **`<ref>` elements inside composites**: offsets are computed correctly for size calculations, but no typed accessor is generated.
+- **`presence="constant"` fields**: occupy zero wire bytes and are excluded from both offset calculation and accessor generation.
+- **Composite-within-composite codegen**: nested composites (e.g. a `<ref>` to another composite inside a composite) aren't recursively expanded into accessor methods.
 
-In all cases the generated file is valid TypeScript and the wire layout is correct — only those specific fields lack a typed accessor.
+In all cases the generated file is valid TypeScript and the wire layout is correct; only those specific fields lack a typed accessor.
 
 ## Requirements
 

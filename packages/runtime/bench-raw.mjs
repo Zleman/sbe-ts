@@ -4,8 +4,6 @@
 
 import { MessageFlyweight } from './dist/index.mjs';
 
-// ── stat helpers ──────────────────────────────────────────────────────────────
-
 function hz(iters, ms) {
   return ((iters / ms) * 1000).toLocaleString('en', { maximumFractionDigits: 0 });
 }
@@ -42,8 +40,6 @@ function bench(name, fn, {
   );
 }
 
-// ── flyweight-helper decoders (old style: this.getUint32) ─────────────────────
-
 class FlyweightDecoder extends MessageFlyweight {
   a() { return this.getUint32(0); }
   b() { return this.getUint32(4); }
@@ -58,8 +54,6 @@ class FlyweightBigIntDecoder extends MessageFlyweight {
   flags()        { return this.getUint32(20); }
 }
 
-// ── direct DataView decoders (new style: this.view.getUint32(this.offset+N, true)) ─
-
 class DirectDecoder extends MessageFlyweight {
   a() { return this.view.getUint32(this.offset + 0, true); }
   b() { return this.view.getUint32(this.offset + 4, true); }
@@ -73,8 +67,6 @@ class DirectBigIntDecoder extends MessageFlyweight {
   quantity()     { return this.view.getBigInt64(this.offset + 12, true); }
   flags()        { return this.view.getUint32(this.offset + 20, true); }
 }
-
-// ── TypedArray decoder (for comparison) ──────────────────────────────────────
 
 class TypedArrayDecoder extends MessageFlyweight {
   _u32;
@@ -93,8 +85,6 @@ class TypedArrayDecoder extends MessageFlyweight {
   c() { return this._u32[(this.offset + 8) >> 2]; }
   d() { return this._u32[(this.offset + 12) >> 2]; }
 }
-
-// ── buffers ───────────────────────────────────────────────────────────────────
 
 const MSG_SIZE  = 24;
 const POOL      = 10;
